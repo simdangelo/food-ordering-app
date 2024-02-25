@@ -7,4 +7,4 @@ This is a project about how to build a scalable and decoupled backend for an app
 I will build the whole system locally using a locally running Kafka broker, but of course in a production setting you will want to run multiple Kafka instances ina more mature environment.
 
 # Application System Diagram
-![img.png](img.png)
+![img_2.png](img_2.png)
