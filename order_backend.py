@@ -25,4 +25,4 @@ for i in range(1, ORDER_LIMIT):
     )
 
     print(f"Done sending...{i}")
-    # time.sleep(0.001)
+    time.sleep(0.5)
