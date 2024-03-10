@@ -41,7 +41,7 @@ def place_order():
                 "cost": cost,
                 "time": datetime.datetime.now().isoformat()
             }
-            print(order)
+
             # Send order to Kafka
             producer.send(
                 ORDER_KAFKA_TOPIC,
