@@ -18,9 +18,7 @@ producer = KafkaProducer(
 print("Transactions listening...\n")
 while True:
     for message in consumer:
-        print("Ongoing transaction...")
         consumed_message = json.loads(message.value.decode())
-        print(consumed_message)
 
         user = consumed_message["user"]
         email = consumed_message["email"]
@@ -32,7 +30,7 @@ while True:
             "food_cost": food_cost
         }
 
-        print("Successful transaction...\n")
+        print(f"Successful transaction: {consumed_message}\n")
         producer.send(
             ORDER_CONFIRMED_KAFKA_TOPIC,
             json.dumps(data).encode("utf-8")
