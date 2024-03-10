@@ -15,25 +15,25 @@ producer = KafkaProducer(
     bootstrap_servers="localhost:29092"
 )
 
-print("Transactions listening...")
+print("Transactions listening...\n")
 while True:
     for message in consumer:
         print("Ongoing transaction...")
         consumed_message = json.loads(message.value.decode())
         print(consumed_message)
 
-        user_id = consumed_message["user_id"]
-        total_cost = consumed_message["total_cost"]
+        user = consumed_message["user"]
+        email = consumed_message["email"]
+        food_cost = consumed_message["cost"]
 
         data = {
-            "customer_id": user_id,
-            "customer_email": f"{user_id}@gmail.com",
-            "total_cost": total_cost
+            "customer_name": user,
+            "customer_email": email,
+            "food_cost": food_cost
         }
 
-        print("Successful transaction...")
+        print("Successful transaction...\n")
         producer.send(
             ORDER_CONFIRMED_KAFKA_TOPIC,
             json.dumps(data).encode("utf-8")
         )
-

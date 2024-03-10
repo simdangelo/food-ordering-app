@@ -9,14 +9,15 @@ consumer = KafkaConsumer(
 )
 
 email_sent_so_far = set()
-print("Email is listening...")
+print("Email is listening...\n")
 
 while True:
     for message in consumer:
         consumed_message = json.loads(message.value.decode())
+        customer_name = consumed_message["customer_name"]
         customer_email = consumed_message["customer_email"]
 
-        print(f"Sending email to {customer_email}")
+        print(f"Order is confirmed for {customer_name}. Sending email to {customer_email}")
 
         email_sent_so_far.add(customer_email)
         print(f"So far emails sent to {len(email_sent_so_far)} unique emails.")

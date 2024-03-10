@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Application</title>
+    <style>
+        /* Basic CSS styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Place Order</h2>
+        <form action="/place_order" method="post">
+            <label for="name">Your Name:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="email">Your Email:</label>
+            <input type="text" id="email" name="email" required>
+            <label for="food">Select Food:</label>
+            <select id="food" name="food">
+                <option value="pizza">Pizza</option>
+                <option value="sandwich">Sandwich</option>
+            </select>
+            <label for="size">Select Size:</label>
+            <select id="size" name="size">
+                <option value="big">Big</option>
+                <option value="small">Small</option>
+            </select>
+            <button type="submit">Place Order</button>
+        </form>
+        <p id="status"></p>
+    </div>
+</body>
+</html>
