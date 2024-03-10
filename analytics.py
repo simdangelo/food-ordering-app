@@ -2,6 +2,7 @@ import json
 
 from kafka import KafkaConsumer
 
+
 ORDER_CONFIRMED_KAFKA_TOPIC = "order_confirmed"
 
 consumer = KafkaConsumer(

@@ -1,6 +1,9 @@
 import json
 from flask import Flask, render_template, request, redirect, url_for
 from kafka import KafkaProducer
+import uuid
+import datetime
+
 
 app = Flask(__name__)
 
@@ -30,11 +33,13 @@ def place_order():
 
         if user and email and food and size:
             order = {
+                "id": str(uuid.uuid4()),
                 "user": user,
                 "email": email,
                 "food": food,
                 "size": size,
                 "cost": cost,
+                "time": datetime.datetime.now().isoformat()
             }
             print(order)
             # Send order to Kafka
