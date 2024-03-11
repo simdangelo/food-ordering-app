@@ -58,3 +58,21 @@ def order_confirmation():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+# import time
+#
+# for i in range(1_000_000):
+#     order = {
+#         "id": str(uuid.uuid4()),
+#         "user": f"{i}_user",
+#         "email": f"{i}_email",
+#         "food": f"{i}_food",
+#         "size": f"{i}_size",
+#         "cost": 4,
+#         "time": datetime.datetime.now().isoformat()
+#     }
+#
+#     producer.send(ORDER_KAFKA_TOPIC, json.dumps(order).encode("utf-8"))
+#     print(f"Done Sending..{i}")
+#     time.sleep(0)
