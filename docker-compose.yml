@@ -43,3 +43,15 @@ services:
       - HEAP_NEWSIZE=100M
       - CASSANDRA_USERNAME=cassandra
       - CASSANDRA_PASSWORD=cassandra
+
+  superset:
+    build:
+      context: ./superset
+      dockerfile: dockerfile
+    container_name: superset
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_EMAIL=admin@superset.com
+      - ADMIN_PASSWORD=admin
+    ports:
+      - '8088:8088'

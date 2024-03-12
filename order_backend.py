@@ -17,8 +17,8 @@ PRICE_DICT = {
     ("pizza", "small"): 10,
     ("sandwich", "big"): 12,
     ("sandwich", "small"): 8,
-    # Add more food and size combinations as needed
 }
+
 
 @app.route("/place_order", methods=["GET", "POST"])
 def place_order():
@@ -47,14 +47,26 @@ def place_order():
                 ORDER_KAFKA_TOPIC,
                 json.dumps(order).encode("utf-8")
             )
+
             return redirect(url_for('order_confirmation'))  # Redirect to order confirmation page
         else:
             return "Invalid order details!"
     return render_template("place_order.html")
 
+
 @app.route("/order_confirmation")
 def order_confirmation():
     return render_template("order_confirmation.html")
+
+
+from cassandra.cluster import Cluster
+cluster = Cluster(['localhost'])
+session = cluster.connect()
+
+@app.route("/orders_db")
+def display_orders():
+    orders = session.execute('SELECT * FROM spark_streams.orders')  # Assuming your table name is 'orders'
+    return render_template('orders_display.html', orders=orders)
 
 if __name__ == "__main__":
     app.run(debug=True)
