@@ -4,6 +4,7 @@ from cassandra.cluster import Cluster
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType
+from kafka_topic import *
 
 
 def create_keyspace(session):
@@ -24,7 +25,9 @@ def create_table(session):
         food TEXT,
         size TEXT,
         cost INT,
-        time TIMESTAMP);
+        time TIMESTAMP,
+        order_completed INT
+        );
     """)
 
     print("Table created successfully!")
@@ -58,7 +61,7 @@ def connect_to_kafka(spark_conn):
             spark_conn.readStream
             .format('kafka')
             .option('kafka.bootstrap.servers', 'localhost:29092')
-            .option('subscribe', 'order_details')
+            .option('subscribe', ORDER_CONFIRMED_KAFKA_TOPIC)
             .option('startingOffsets', 'earliest')
             # .option("failOnDataLoss", "false") # in case of specific error, you need to set this option
             .load()
@@ -91,7 +94,8 @@ def create_selection_df_from_kafka(spark_df):
         StructField("food", StringType(), False),
         StructField("size", StringType(), False),
         StructField("cost", IntegerType(), False),
-        StructField("time", TimestampType(), False)
+        StructField("time", TimestampType(), False),
+        StructField("order_completed", IntegerType(), False),
     ])
 
     sel = spark_df.selectExpr("CAST(value AS STRING)") \
@@ -99,6 +103,24 @@ def create_selection_df_from_kafka(spark_df):
     print(sel)
 
     return sel
+
+def mysql_connection():
+    import mysql.connector as mysql
+
+    cnx = mysql.connect(
+        user='user',
+        password='password',
+        database='mysql',
+        host='0.0.0.0',
+        port=8081
+    )
+    cursor = cnx.cursor()
+    return cursor
+
+def create_mysql_table(cursor):
+    cursor.execute("CREATE TABLE IF NOT EXISTS test(id INTEGER(64) PRIMARY KEY, name VARCHAR(255))")
+    print("mysql table created successfully!")
+
 
 
 if __name__ == "__main__":
@@ -110,6 +132,10 @@ if __name__ == "__main__":
         spark_df = connect_to_kafka(spark_conn)
         selection_df = create_selection_df_from_kafka(spark_df)
         session = create_cassandra_connection()
+
+        # session_mysql = mysql_connection()
+        # create_mysql_table(session_mysql)
+
 
         if session is not None:
             create_keyspace(session)
@@ -129,5 +155,32 @@ if __name__ == "__main__":
             #     .outputMode("append") \
             #     .format("console") \
             #     .start()
+
+            # mysql_host = "localhost"
+            # mysql_port = 3306
+            # mysql_driver = "com.mysql.cj.jdbc.Driver"
+            # mysql_database = "sales_db"
+            # mysql_table = "total_sales_by_source_state"
+            # mysql_username = getenv('MYSQL_USERNAME')
+            # mysql_password = getenv('MYSQL_PASSWORD')
+            # mysql_jdbc_url = f"jdbc:mysql://{mysql_host}:{mysql_port}/{mysql_database}"
+            #
+            # db_credentials = {
+            #     "user": mysql_username,
+            #     "password": mysql_password,
+            #     "driver": mysql_driver
+            # }
+            #
+            # dashboard_query = selection_df \
+            #     .groupBy("food").count() \
+            #     .writeStream \
+            #     .outputMode("update") \
+            #     .write \
+            #     .jdbc(url=mysql_jdbc_url,
+            #           table=mysql_table,
+            #           mode="append",
+            #           properties=db_credentials) \
+            #     .start()
+
 
             streaming_query.awaitTermination()

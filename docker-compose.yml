@@ -55,3 +55,15 @@ services:
       - ADMIN_PASSWORD=admin
     ports:
       - '8088:8088'
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql_dashboard
+    ports:
+      - "8081:8081"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=mysql
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_HOST=%

@@ -2,12 +2,13 @@ import json
 from flask import Flask, render_template, request, redirect, url_for
 from kafka import KafkaProducer
 import uuid
+from uuid import UUID
 import datetime
+from kafka_topic import *
 
 
 app = Flask(__name__)
 
-ORDER_KAFKA_TOPIC = "order_details"
 ORDER_LIMIT = 1_000_000
 
 producer = KafkaProducer(bootstrap_servers="localhost:29092")
@@ -18,6 +19,10 @@ PRICE_DICT = {
     ("sandwich", "big"): 12,
     ("sandwich", "small"): 8,
 }
+
+from cassandra.cluster import Cluster
+cluster = Cluster(['localhost'])
+session = cluster.connect()
 
 
 @app.route("/place_order", methods=["GET", "POST"])
@@ -39,12 +44,13 @@ def place_order():
                 "food": food,
                 "size": size,
                 "cost": cost,
-                "time": datetime.datetime.now().isoformat()
+                "time": datetime.datetime.now().isoformat(),
+                "order_completed": 0
             }
 
             # Send order to Kafka
             producer.send(
-                ORDER_KAFKA_TOPIC,
+                ORDER_CONFIRMED_KAFKA_TOPIC,
                 json.dumps(order).encode("utf-8")
             )
 
@@ -59,14 +65,42 @@ def order_confirmation():
     return render_template("order_confirmation.html")
 
 
-from cassandra.cluster import Cluster
-cluster = Cluster(['localhost'])
-session = cluster.connect()
+@app.route('/completato', methods=['POST'])
+def ordine_completato():
+    order_id = request.form['orderId']
+    producer.send(ORDER_COMPLETED_KAFKA_TOPIC, key=str(order_id).encode(), value=b'Ordine completato')
+    return 'OK'
+
 
 @app.route("/orders_db")
 def display_orders():
-    orders = session.execute('SELECT * FROM spark_streams.orders')  # Assuming your table name is 'orders'
+    orders = session.execute('SELECT * FROM spark_streams.orders')
     return render_template('orders_display.html', orders=orders)
+
+from flask import jsonify
+
+@app.route('/update_order', methods=['POST'])
+def update_order():
+
+    order_id = UUID(request.form['orderId'])
+    order_completed = int(request.form['orderCompleted'])
+
+    session.execute("UPDATE spark_streams.orders SET order_completed = %s WHERE id = %s", (order_completed, order_id))
+
+    return jsonify(status='success')
+
+@app.route("/get_order_info", methods=['GET'])
+def get_order_info():
+    order_id = request.args.get('orderId')
+    cluster = Cluster(['localhost'])
+    session = cluster.connect()
+    row = session.execute("SELECT order_completed FROM spark_streams.orders WHERE id = %s", (UUID(order_id),)).one()
+    if row:
+        order_completed = row.order_completed
+        return jsonify(order_completed=order_completed)
+    else:
+        return jsonify(order_completed=None)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
