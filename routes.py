@@ -5,6 +5,8 @@ import uuid
 from uuid import UUID
 import datetime
 from kafka_topic import *
+from flask import jsonify
+
 
 
 app = Flask(__name__)
@@ -64,20 +66,17 @@ def place_order():
 def order_confirmation():
     return render_template("order_confirmation.html")
 
-
-@app.route('/completato', methods=['POST'])
-def ordine_completato():
-    order_id = request.form['orderId']
-    producer.send(ORDER_COMPLETED_KAFKA_TOPIC, key=str(order_id).encode(), value=b'Ordine completato')
-    return 'OK'
-
-
 @app.route("/orders_db")
 def display_orders():
     orders = session.execute('SELECT * FROM spark_streams.orders')
     return render_template('orders_display.html', orders=orders)
 
-from flask import jsonify
+@app.route('/completato', methods=['POST'])
+def ordine_completato():
+    order_id = request.form['orderId']
+    email_id = request.form['emailId']
+    producer.send(ORDER_COMPLETED_KAFKA_TOPIC, json.dumps({'order_id': order_id, 'email_id': email_id}).encode('utf-8'))
+    return 'OK'
 
 @app.route('/update_order', methods=['POST'])
 def update_order():
@@ -92,8 +91,7 @@ def update_order():
 @app.route("/get_order_info", methods=['GET'])
 def get_order_info():
     order_id = request.args.get('orderId')
-    cluster = Cluster(['localhost'])
-    session = cluster.connect()
+
     row = session.execute("SELECT order_completed FROM spark_streams.orders WHERE id = %s", (UUID(order_id),)).one()
     if row:
         order_completed = row.order_completed

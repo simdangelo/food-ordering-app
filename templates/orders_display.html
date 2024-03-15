@@ -37,7 +37,7 @@
             <td>{{ order.food }}</td>
             <td>{{ order.size }}</td>
             <td>{{ order.cost }}</td>
-            <td><button class="btn btn-success ordine-completato-btn" data-order-id="{{ order.id }}">Ordine completato</button></td>
+            <td><button class="btn btn-success ordine-completato-btn" data-order-id="{{ order.id }}" data-email-id="{{ order.email }}">Ordine completato</button></td>
         </tr>
         {% endfor %}
       </tbody>
@@ -53,23 +53,24 @@
                 // Make AJAX GET request to Flask backend to retrieve order information
                 $.get('/get_order_info', {orderId: orderId}, function(data) {
                     if (data.order_completed === 1) {
-                        button.addClass('disabled').css('background-color', 'red');
+                        button.addClass('disabled').text('Order completed').css('background-color', 'red');
                     } else {
-                        button.removeClass('disabled').css('background-color', 'green');
+                        button.removeClass('disabled').text('Click here when the order is ready').css('background-color', 'green');
                     }
                 });
             });
 
             $('.ordine-completato-btn').click(function() {
                 var orderId = $(this).data('order-id');
+                var emailId = $(this).data('email-id');
                 var button = $(this);
 
                 // Make AJAX POST request to Flask backend
-                $.post('/completato', {orderId: orderId}, function(data) {
+                $.post('/completato', {orderId: orderId, emailId: emailId}, function(data) {
                     // Check if the response is successful
                     if (data === 'OK') {
-                        // Disable the button and change its appearance
-                        button.addClass('disabled').css('background-color', 'red');
+                        // Update the text of the button dynamically
+                        button.text('Order completed').css('background-color', 'red').prop('disabled', true);
 
                         // Update associated record in the Cassandra dataframe (assuming you have a route for this)
                         $.post('/update_order', {orderId: orderId, orderCompleted: 1}, function(data) {
@@ -82,6 +83,7 @@
             });
         });
     </script>
+
 
 
 </body>
