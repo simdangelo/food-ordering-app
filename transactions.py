@@ -1,39 +1,40 @@
 import json
-
 from kafka import KafkaConsumer
 from kafka import KafkaProducer
+from kafka_topic import *
 
-ORDER_KAFKA_TOPIC = "order_details"
-ORDER_CONFIRMED_KAFKA_TOPIC = "order_confirmed"
-
-consumer = KafkaConsumer(
-    ORDER_KAFKA_TOPIC,
-    bootstrap_servers="localhost:29092"
-)
 
 producer = KafkaProducer(
     bootstrap_servers="localhost:29092"
 )
 
-print("Transactions listening...")
+consumer = KafkaConsumer(
+    ORDER_CONFIRMED_KAFKA_TOPIC,
+    bootstrap_servers="localhost:29092"
+)
+
+
+print("Transactions listening...\n")
 while True:
     for message in consumer:
-        print("Ongoing transaction...")
         consumed_message = json.loads(message.value.decode())
-        print(consumed_message)
 
-        user_id = consumed_message["user_id"]
-        total_cost = consumed_message["total_cost"]
+        user = consumed_message["user"]
+        email = consumed_message["email"]
+        food = consumed_message["food"]
+        size = consumed_message["size"]
+        food_cost = consumed_message["cost"]
+        time = consumed_message["time"]
 
-        data = {
-            "customer_id": user_id,
-            "customer_email": f"{user_id}@gmail.com",
-            "total_cost": total_cost
-        }
+        print(f"Order by: {user}: {food} (size {size}). Cost: {food_cost}. Order time: {time}\n")
 
-        print("Successful transaction...")
-        producer.send(
-            ORDER_CONFIRMED_KAFKA_TOPIC,
-            json.dumps(data).encode("utf-8")
-        )
-
+        # data = {
+        #     "customer_name": user,
+        #     "customer_email": email,
+        #     "food_cost": food_cost
+        # }
+        
+        # producer.send(
+        #     ORDER_CONFIRMED_KAFKA_TOPIC,
+        #     json.dumps(data).encode("utf-8")
+        # )
