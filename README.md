@@ -1,10 +1,19 @@
 # Repo Introduction
 This repo is my attempt to recreate a project I found on YouTube ([link here](https://www.youtube.com/watch?v=qi7uR3ItaOY&ab_channel=CodewithIrtiza)) by "Code with Irtiza" that explains how to use Apache Kafka for a simple project. My plan is to start by copying that project and then add more features, like a database, to make the application do more things.
 
+**Update 2024-03-16**
+I added some features to make the project more interesting and challenging with respect to the original one:
+* add a frontend section where users can make orders;
+* add a frontend section where shop workers can see the orders and can notify users when the order is ready;
+* add Flask module to create APIs for the frontend to communicate with the backend.
+* add Apache Spark to process the data coming from the frontend through Kafka;
+* add a Cassandra database to store the orders.
+
+
 # Project Details
 This is a project about how to build a scalable and decoupled backend for an application using Apache Kafka and Python. It's not really matter what this app is (a food ordering app in this case), but it's more about the system that we want to build and how it can scale very easily.
 
-I will build the whole system locally using a locally running Kafka broker, but of course in a production setting you will want to run multiple Kafka instances ina more mature environment.
+I will build the whole system locally using a locally running Kafka broker, but of course in a production setting you will want to run multiple Kafka instances in a more mature environment.
 
 # Application System Diagram
 ![img_2.png](img_2.png)
@@ -22,30 +31,30 @@ pip install -r requirements.txt
 ```
 docker-compose up
 ```
-4. Wait for the containers to be up and running. Then open 4 terminals and run each of the following commands in each terminal (run python `order_backend.py` as the last one):
+4. Wait for the containers to be up and running. Then open a terminal to run the Flask app:
+```
+python routes.py
+```
+Then open another terminal to see realtime analytics about orders and revenues:
 ```
 python analytics.py
 ```
+Now start the Spark Application with:
 ```
-python email.py
-```
-```
-python transactions.py
-```
-```
-python order_backend.py
+python db-ingestion.py
 ```
 
 # Results
-After starting the first 3 terminals, and the fourth one as last one, you should see the following outputs:
-![img.png](img.png)
+![img_3.png](img_3.png)
 
-As you can see in the image above, as orders are being created in the bottom right terminal, the other three terminals are populated with info about:
-* order confirmation with an email sent to the customer (upper left terminal);
-* details about the specific order (upper right terminal);
-* total number of orders and cumulative revenue (bottom left terminal).
+As you can see in the image above:
+* the Flask app is running (bottom right terminal);
+* a frontend section where user can make customized orders (upper left window);
+* as soon as the user make an order, that order appear in the analytics terminal (bottom left terminal) and stats about the numbers of orders and the revenue in that day are updated;
+* the shop workers can see pending orders corresponding to the green button (upper right window). As soon as an order is ready, shop workers click the green button that becomes immediately red and the analytics terminal is updated with the completion of the order and stats about the number of orders still active is updated.
 
-# What's Next
-I want to add some feature so this project in order to makes it more technically challenging and more interesting. I'm thinking about: 
-* add a database to store the orders and the customers' information.
-* add a frontend to the application so that users can make detailed order.
+Of course all the orders are stored in Cassandra DB:
+![img_4.png](img_4.png)
+
+# Bugs
+After the first order, in the analytics terminal the stats about the number of orders and the revenue remain 0, maybe because data is not stored yet in the Cassandra DB and so the application didn't see any records in the DB.
