@@ -17,13 +17,14 @@ I will build the whole system locally using a locally running Kafka broker, but 
 
 # Application System Diagram
 ![img_2.png](img_2.png)
-
+**This image represents the original project. Now it is more complex, but the image is not updated yet.*
 # Getting Started
+This project is tested on MacOS Sonoma 14.3.1 and Python 3.10. You probably need to install Java on your machine as well. My version is Java 17.0.8.
 1. Clone this repository:
 ```
 https://github.com/simdangelo/food-ordering-app.git
 ```
-2. Create a virtual environment and install the requirements with `requirements.txt` file (this project is proven to work with Python 3.10):
+2. Create a virtual environment and install the requirements with `requirements.txt` file:
 ```
 pip install -r requirements.txt
 ```
