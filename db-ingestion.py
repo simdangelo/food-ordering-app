@@ -150,37 +150,14 @@ if __name__ == "__main__":
                                .option('table', 'orders')
                                .start())
 
+            # debug in console
             # streaming_query = selection_df \
             #     .writeStream \
             #     .outputMode("append") \
             #     .format("console") \
             #     .start()
 
-            # mysql_host = "localhost"
-            # mysql_port = 3306
-            # mysql_driver = "com.mysql.cj.jdbc.Driver"
-            # mysql_database = "sales_db"
-            # mysql_table = "total_sales_by_source_state"
-            # mysql_username = getenv('MYSQL_USERNAME')
-            # mysql_password = getenv('MYSQL_PASSWORD')
-            # mysql_jdbc_url = f"jdbc:mysql://{mysql_host}:{mysql_port}/{mysql_database}"
-            #
-            # db_credentials = {
-            #     "user": mysql_username,
-            #     "password": mysql_password,
-            #     "driver": mysql_driver
-            # }
-            #
-            # dashboard_query = selection_df \
-            #     .groupBy("food").count() \
-            #     .writeStream \
-            #     .outputMode("update") \
-            #     .write \
-            #     .jdbc(url=mysql_jdbc_url,
-            #           table=mysql_table,
-            #           mode="append",
-            #           properties=db_credentials) \
-            #     .start()
+
 
 
             streaming_query.awaitTermination()
