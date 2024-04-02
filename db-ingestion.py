@@ -5,32 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType
 from kafka_topic import *
-
-
-def create_keyspace(session):
-    session.execute("""
-        CREATE KEYSPACE IF NOT EXISTS spark_streams
-        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
-    """)
-
-    print("Keyspace created successfully!")
-
-
-def create_table(session):
-    session.execute("""
-    CREATE TABLE IF NOT EXISTS spark_streams.orders (
-        id UUID PRIMARY KEY,
-        user TEXT,
-        email TEXT,
-        food TEXT,
-        size TEXT,
-        cost INT,
-        time TIMESTAMP,
-        order_completed INT
-        );
-    """)
-
-    print("Table created successfully!")
+import psycopg2
 
 
 def create_spark_connection():
@@ -41,7 +16,8 @@ def create_spark_connection():
             SparkSession.builder
             .appName('SparkDataStreaming')
             .config('spark.jars.packages', "com.datastax.spark:spark-cassandra-connector_2.12:3.5.0,"
-                                           "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0")
+                                           "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,"
+                                           "org.postgresql:postgresql:42.6.0",)
             .config('spark.cassandra.connection.host', 'localhost:9042')
             .getOrCreate()
         )
@@ -72,24 +48,10 @@ def connect_to_kafka(spark_conn):
 
     return spark_df
 
-
-def create_cassandra_connection():
-    try:
-        # connecting to the cassandra cluster
-        cluster = Cluster(['localhost'])
-
-        cas_session = cluster.connect()
-
-        return cas_session
-    except Exception as e:
-        logging.error(f"Could not create cassandra connection due to {e}")
-        return None
-
-
 def create_selection_df_from_kafka(spark_df):
     schema = StructType([
         StructField("id", StringType(), False),
-        StructField("user", StringType(), False),
+        StructField("username", StringType(), False),
         StructField("email", StringType(), False),
         StructField("food", StringType(), False),
         StructField("size", StringType(), False),
@@ -104,60 +66,109 @@ def create_selection_df_from_kafka(spark_df):
 
     return sel
 
-def mysql_connection():
-    import mysql.connector as mysql
+def test_postgres_connection(host, database, user, password, port):
+    try:
+        conn = psycopg2.connect(
+            host=host,
+            database=database,
+            user=user,
+            password=password,
+            port=port
+        )
+        conn.close()
+        print("Connection to PostgreSQL successful!")
 
-    cnx = mysql.connect(
+    except psycopg2.Error as e:
+        # Print error message if connection fails
+        print(f"Error connecting to PostgreSQL: {e}")
+
+def create_postgres_connection():
+    conn = psycopg2.connect(
+        host='localhost',
+        database='database',
         user='user',
         password='password',
-        database='mysql',
-        host='0.0.0.0',
-        port=8081
+        port=5432
     )
-    cursor = cnx.cursor()
-    return cursor
 
-def create_mysql_table(cursor):
-    cursor.execute("CREATE TABLE IF NOT EXISTS test(id INTEGER(64) PRIMARY KEY, name VARCHAR(255))")
-    print("mysql table created successfully!")
+    return conn
+
+def create_postgres_schema(postgres_connection):
+    cursor = postgres_connection.cursor()
+    cursor.execute(
+        """
+        CREATE SCHEMA IF NOT EXISTS spark_streams;
+        """
+    )
+    cursor.close()
+    postgres_connection.commit()
+
+def create_postgres_table(postgres_connection):
+    cursor = postgres_connection.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS spark_streams.orders (
+            id VARCHAR(255) PRIMARY KEY,
+            username VARCHAR(255),
+            email VARCHAR(255),
+            food VARCHAR(255),
+            size VARCHAR(255),
+            cost DECIMAL,
+            time TIMESTAMP,
+            order_completed INT
+            );
+        """)
+    cursor.close()
+    postgres_connection.commit()
+
+    print("Table created successfully!")
 
 
 
 if __name__ == "__main__":
+    # define postgres parameters
+    host = 'localhost'
+    database = 'database'
+    user = 'user'
+    password = 'password'
+    port = 5432
+
     # create spark connection
     spark_conn = create_spark_connection()
 
-    if spark_conn is not None:
-        # connect to kafka with spark connection
-        spark_df = connect_to_kafka(spark_conn)
-        selection_df = create_selection_df_from_kafka(spark_df)
-        session = create_cassandra_connection()
+    spark_df = connect_to_kafka(spark_conn)
+    selection_df = create_selection_df_from_kafka(spark_df)
 
-        # session_mysql = mysql_connection()
-        # create_mysql_table(session_mysql)
+    test_postgres_connection(host, database, user, password, port)
+    postgres_connection = create_postgres_connection()
+    create_postgres_schema(postgres_connection)
+    create_postgres_table(postgres_connection)
 
-
-        if session is not None:
-            create_keyspace(session)
-            create_table(session)
-
-            logging.info("Streaming is being started...")
-
-            # in case you want to write to cassandra database, as expected from the original project settings
-            streaming_query = (selection_df.writeStream.format("org.apache.spark.sql.cassandra")
-                               .option('checkpointLocation', 'checkpoint')
-                               .option('keyspace', 'spark_streams')
-                               .option('table', 'orders')
-                               .start())
-
-            # debug in console
-            # streaming_query = selection_df \
-            #     .writeStream \
-            #     .outputMode("append") \
-            #     .format("console") \
-            #     .start()
+    logging.info("Streaming is being started...")
 
 
+    def _write_stream_to_postgres(batch_df, epoch_id):
+        batch_df.write \
+            .mode("append") \
+            .format("jdbc") \
+            .option("url", f"jdbc:postgresql://localhost:5432/database") \
+            .option("driver", "org.postgresql.Driver") \
+            .option("user", user) \
+            .option("password", password) \
+            .option("dbtable", "spark_streams.orders") \
+            .save()
 
+    # Start streaming query
+    streaming_query = selection_df.writeStream \
+        .foreachBatch(_write_stream_to_postgres) \
+        .start()
 
-            streaming_query.awaitTermination()
+    # DEBUG IN CONSOLE
+    # selection_df.printSchema()
+    # streaming_query = selection_df \
+    #     .writeStream \
+    #     .outputMode("append") \
+    #     .format("console") \
+    #     .start()
+
+    # Await termination
+    streaming_query.awaitTermination()

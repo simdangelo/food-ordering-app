@@ -33,8 +33,8 @@ print("Analytics listening...\n")
 
 for message in consumer:
     if message.topic == ORDER_CONFIRMED_KAFKA_TOPIC:
-        time.sleep(0.5)
-        consumed_message = json.loads(message.value.decode())
+        # time.sleep(0.5)
+        # consumed_message = json.loads(message.value.decode())
 
         total_orders_count_today = calculate_orders_today()
         total_revenue = calculate_total_revenue()

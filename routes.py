@@ -6,7 +6,7 @@ from uuid import UUID
 import datetime
 from kafka_topic import *
 from flask import jsonify
-
+import psycopg2
 
 
 app = Flask(__name__)
@@ -22,9 +22,17 @@ PRICE_DICT = {
     ("sandwich", "small"): 8,
 }
 
-from cassandra.cluster import Cluster
-cluster = Cluster(['localhost'])
-session = cluster.connect()
+
+def postgres_connection():
+    conn = psycopg2.connect(
+        host='localhost',
+        database='database',
+        user='user',
+        password='password',
+        port=5432
+    )
+    cursor = conn.cursor()
+    return conn, cursor
 
 
 @app.route("/place_order", methods=["GET", "POST"])
@@ -41,7 +49,7 @@ def place_order():
         if user and email and food and size:
             order = {
                 "id": str(uuid.uuid4()),
-                "user": user,
+                "username": user,
                 "email": email,
                 "food": food,
                 "size": size,
@@ -68,7 +76,15 @@ def order_confirmation():
 
 @app.route("/orders_db")
 def display_orders():
-    orders = session.execute('SELECT * FROM spark_streams.orders')
+    conn, cursor = postgres_connection()
+    cursor.execute("SELECT * FROM spark_streams.orders ORDER BY time DESC;")
+
+    columns = [desc[0] for desc in cursor.description]
+    orders = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    cursor.close()
+    conn.close()
+
     return render_template('orders_display.html', orders=orders)
 
 @app.route('/completato', methods=['POST'])
@@ -80,24 +96,20 @@ def ordine_completato():
 
 @app.route('/update_order', methods=['POST'])
 def update_order():
+    order_id = str(request.form['orderId'])
 
-    order_id = UUID(request.form['orderId'])
-    order_completed = int(request.form['orderCompleted'])
-
-    session.execute("UPDATE spark_streams.orders SET order_completed = %s WHERE id = %s", (order_completed, order_id))
+    conn, cursor = postgres_connection()
+    cursor.execute(
+        """
+        UPDATE spark_streams.orders SET order_completed = 1 WHERE id = %s;
+        """,
+        (order_id,)
+    )
+    cursor.close()
+    conn.commit()
+    conn.close()
 
     return jsonify(status='success')
-
-@app.route("/get_order_info", methods=['GET'])
-def get_order_info():
-    order_id = request.args.get('orderId')
-
-    row = session.execute("SELECT order_completed FROM spark_streams.orders WHERE id = %s", (UUID(order_id),)).one()
-    if row:
-        order_completed = row.order_completed
-        return jsonify(order_completed=order_completed)
-    else:
-        return jsonify(order_completed=None)
 
 
 if __name__ == "__main__":
