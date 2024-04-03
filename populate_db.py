@@ -2,6 +2,7 @@ import psycopg2
 import uuid
 import datetime
 import random
+import time
 
 
 def test_postgres_connection(host, database, user, password, port):
@@ -51,9 +52,13 @@ def create_postgres_table(postgres_connection):
     print("Table created successfully!")
 
 def create_fake_orders(postgres_connection):
-    cursor = postgres_connection.cursor()
+    # cursor = postgres_connection.cursor()
 
-    for _ in range(10000):
+    total_iterations = 10000
+    for i in range(total_iterations):
+
+        cursor = postgres_connection.cursor()
+
         order_id = str(uuid.uuid4())
         username = "user_" + str(random.randint(1, 10000))
         email = username + "@example.com"
@@ -70,20 +75,22 @@ def create_fake_orders(postgres_connection):
         start_date = today - datetime.timedelta(days=90)
         random_day = start_date + datetime.timedelta(days=random.randint(0, 90))
 
-        time = datetime.datetime.combine(random_day, datetime.time(hour, minute, second)).isoformat()
+        time_ = datetime.datetime.combine(random_day, datetime.time(hour, minute, second)).isoformat()
         order_completed = random.choice([0, 1])
 
         cursor.execute("""
             INSERT INTO spark_streams.orders (id, username, email, food, size, cost, time, order_completed)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (order_id, username, email, food, size, cost, time, order_completed))
+            """, (order_id, username, email, food, size, cost, time_, order_completed))
 
-    cursor.close()
-    postgres_connection.commit()
+        print(f"Progress: {i + 1}/{total_iterations}")
 
-# Example usage:
-# Connect to your PostgreSQL database
-# Replace 'your_connection_string' with your actual connection string
+        cursor.close()
+        postgres_connection.commit()
+
+        # time.sleep(0.00000001)
+
+
 conn = psycopg2.connect(
         host='localhost',
         database='database',
@@ -103,6 +110,3 @@ create_postgres_table(conn)
 
 # Populate the table with fake data
 create_fake_orders(conn)
-
-# Close the database connection
-conn.close()

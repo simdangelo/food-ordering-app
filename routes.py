@@ -2,9 +2,8 @@ import json
 from flask import Flask, render_template, request, redirect, url_for
 from kafka import KafkaProducer
 import uuid
-from uuid import UUID
-import datetime
-from kafka_topic import *
+from datetime import datetime
+from common.kafka_topic import *
 from flask import jsonify
 import psycopg2
 
@@ -54,7 +53,7 @@ def place_order():
                 "food": food,
                 "size": size,
                 "cost": cost,
-                "time": datetime.datetime.now().isoformat(),
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "order_completed": 0
             }
 

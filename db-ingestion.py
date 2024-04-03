@@ -1,10 +1,9 @@
 import logging
 
-from cassandra.cluster import Cluster
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType
-from kafka_topic import *
+from common.kafka_topic import *
 import psycopg2
 
 
