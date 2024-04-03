@@ -77,7 +77,7 @@ def order_confirmation():
 @app.route("/orders_db")
 def display_orders():
     conn, cursor = postgres_connection()
-    cursor.execute("SELECT * FROM spark_streams.orders ORDER BY time DESC;")
+    cursor.execute("SELECT * FROM spark_streams.orders ORDER BY time DESC LIMIT 20;")
 
     columns = [desc[0] for desc in cursor.description]
     orders = [dict(zip(columns, row)) for row in cursor.fetchall()]
