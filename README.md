@@ -1,7 +1,10 @@
 # Repo Introduction
 This repo is my attempt to recreate a project I found on YouTube ([link here](https://www.youtube.com/watch?v=qi7uR3ItaOY&ab_channel=CodewithIrtiza)) by "Code with Irtiza" that explains how to use Apache Kafka for a simple project. My plan is to start by copying that project and then add more features, like a database, to make the application do more things.
 
-**Update 2024-03-16**
+
+
+Update1: **Update 2024-03-16**
+
 I added some features to make the project more interesting and challenging with respect to the original one:
 * add a frontend section where users can make orders;
 * add a frontend section where shop workers can see the orders and can notify users when the order is ready;
@@ -9,6 +12,9 @@ I added some features to make the project more interesting and challenging with 
 * add Apache Spark to process the data coming from the frontend through Kafka;
 * add a Cassandra database to store the orders.
 
+Update2: **Update 2024-04-03**
+
+I made some changes to the project, and so this README file is not updated yet. I will update it as soon as possible.
 
 # Project Details
 This is a project about how to build a scalable and decoupled backend for an application using Apache Kafka and Python. It's not really matter what this app is (a food ordering app in this case), but it's more about the system that we want to build and how it can scale very easily.
