@@ -54,73 +54,6 @@ def calculate_daily_kpis():
 
     return total_orders, active_orders, revenues, new_customers
 
-# def calculate_orders_today():
-#     result = session.execute("SELECT COUNT(*) FROM spark_streams.orders WHERE date(time)=currentDate() ALLOW FILTERING")
-#     return result.one()[0] or 0
-#
-#
-# def calculate_total_revenue():
-#     result = session.execute("SELECT SUM(cost) FROM spark_streams.orders")
-#     return result.one()[0] or 0
-#
-#
-# def new_customers_today():
-#     result = session.execute("SELECT * from spark_streams.orders")
-#
-#     data = []
-#     for row in result:
-#         data.append(row)
-#
-#     df = pd.DataFrame(data)
-#     if not df.empty:
-#         filtered_df = df[df['time'] > pd.Timestamp.now().floor('D')]
-#         distinct_count = filtered_df["email"].nunique()
-#
-#     return distinct_count
-#
-# def total_customers():
-#     result = session.execute("SELECT * from spark_streams.orders")
-#
-#     data = []
-#     for row in result:
-#         data.append(row)
-#
-#     df = pd.DataFrame(data)
-#     if not df.empty:
-#         distinct_count = df["email"].nunique()
-#
-#     return distinct_count
-#
-#
-# def pandas_df_completed():
-#     result = session.execute("SELECT * FROM spark_streams.orders WHERE order_completed = 1 ALLOW FILTERING")
-#
-#     data = []
-#     for row in result:
-#         data.append(row)
-#
-#     df = pd.DataFrame(data)
-#     if not df.empty:
-#         df = df.sort_values("time", ascending=False)
-#         df["id"] = df["id"].astype(str)
-#     return df
-#
-#
-# def pandas_df_active():
-#     result = session.execute("SELECT * FROM spark_streams.orders WHERE order_completed = 0 ALLOW FILTERING")
-#
-#     data = []
-#     for row in result:
-#         data.append(row)
-#
-#     df = pd.DataFrame(data)
-#     if not df.empty:
-#         df = df.sort_values("time", ascending=False)
-#         df["id"] = df["id"].astype(str)
-#     else:
-#         df = pd.DataFrame(columns=["id", "user", "email", "food", "size", "cost", "time", "order_completed"])
-#     return df
-
 
 add_selectbox = st.sidebar.radio(
     "How would you like to be contacted?",
@@ -130,7 +63,6 @@ add_selectbox = st.sidebar.radio(
 placeholder = st.empty()
 
 while True:
-
     if add_selectbox == "Today Analytics":
         with placeholder.container():
             total_orders, active_orders, revenues, new_customers = calculate_daily_kpis()
@@ -143,19 +75,9 @@ while True:
             kpi4.metric(label="Total revenue", value=f"$ {revenues} ")
             kpi5.metric(label="New customers today", value=f"{new_customers}")
 
-
             # st.dataframe(pandas_df_completed(), use_container_width=True)
             # st.dataframe(pandas_df_active(), use_container_width=True)
 
-
-        #     result = session.execute("SELECT * FROM spark_streams.orders")
-        #     data = []
-        #     for row in result:
-        #         data.append(row)
-        #     import duckdb
-        #     df = pd.DataFrame(data)
-        #     df = duckdb.sql("SELECT * FROM df where time >= '2024-04-01'").df()
-        #
             fig_col1, fig_col2 = st.columns(2)
             with fig_col1:
                 st.markdown("### Food order Details")
