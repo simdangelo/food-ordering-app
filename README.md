@@ -16,7 +16,7 @@ This is a project about how to build a scalable and decoupled backend for an app
 I will build the whole system locally using a locally running Kafka broker, but of course in a production setting you will want to run multiple Kafka instances in a more mature environment.
 
 # Application System Diagram
-![img_2.png](img_2.png)
+![img_2.png](./images/img_2.png)
 **This image represents the original project. Now it is more complex, but the image is not updated yet.*
 # Getting Started
 This project is tested on MacOS Sonoma 14.3.1 and Python 3.10. You probably need to install Java on your machine as well. My version is Java 17.0.8.
@@ -46,7 +46,7 @@ python db-ingestion.py
 ```
 
 # Results
-![img_3.png](img_3.png)
+![img_3.png](./images/img_3.png)
 
 As you can see in the image above:
 * the Flask app is running (bottom right terminal);
@@ -55,7 +55,7 @@ As you can see in the image above:
 * the shop workers can see pending orders corresponding to the green button (upper right window). As soon as an order is ready, shop workers click the green button that becomes immediately red and the analytics terminal is updated with the completion of the order and stats about the number of orders still active is updated.
 
 Of course all the orders are stored in Cassandra DB:
-![img_4.png](img_4.png)
+![img_4.png](./images/img_4.png)
 
 # Bugs
 After the first order, in the analytics terminal the stats about the number of orders and the revenue remain 0, maybe because data is not stored yet in the Cassandra DB and so the application didn't see any records in the DB.
