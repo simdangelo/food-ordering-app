@@ -1,8 +1,7 @@
 import json
-import time
 
 from kafka import KafkaConsumer
-from kafka_topic import *
+from common.kafka_topic import *
 
 consumer = KafkaConsumer(
     bootstrap_servers="localhost:29092"

@@ -1,7 +1,7 @@
 import json
 from kafka import KafkaConsumer
 from kafka import KafkaProducer
-from kafka_topic import *
+from common.kafka_topic import *
 
 
 producer = KafkaProducer(

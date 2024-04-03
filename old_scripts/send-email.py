@@ -1,6 +1,6 @@
 import json
 from kafka import KafkaConsumer
-from kafka_topic import *
+from common.kafka_topic import *
 
 consumer = KafkaConsumer(
     ORDER_CONFIRMED_KAFKA_TOPIC,
