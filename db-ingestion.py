@@ -145,7 +145,7 @@ if __name__ == "__main__":
     logging.info("Streaming is being started...")
 
 
-    def _write_stream_to_postgres(batch_df, epoch_id):
+    def write_stream_to_postgres(batch_df, epoch_id):
         batch_df.write \
             .mode("append") \
             .format("jdbc") \
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
     # Start streaming query
     streaming_query = selection_df.writeStream \
-        .foreachBatch(_write_stream_to_postgres) \
+        .foreachBatch(write_stream_to_postgres) \
         .start()
 
     # DEBUG IN CONSOLE

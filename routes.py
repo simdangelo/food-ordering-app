@@ -33,26 +33,33 @@ def postgres_connection():
     cursor = conn.cursor()
     return conn, cursor
 
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-@app.route("/place_order", methods=["GET", "POST"])
-def place_order():
+@app.route("/make_order", methods=["GET", "POST"])
+def make_order():
     if request.method == "POST":
         user = request.form.get("name")
         email = request.form.get("email")
+        phone_number = request.form.get("phone_number")
         food = request.form.get("food")
         size = request.form.get("size")
+        city = request.form.get("city")
 
         # Retrieve the cost from the price dictionary
         cost = PRICE_DICT.get((food.lower(), size.lower()), 0)
 
-        if user and email and food and size:
+        if user and email and phone_number and food and size and city:
             order = {
                 "id": str(uuid.uuid4()),
                 "username": user,
                 "email": email,
+                "phone_number": phone_number,
                 "food": food,
                 "size": size,
                 "cost": cost,
+                "city": city,
                 "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "order_completed": 0
             }
@@ -66,7 +73,7 @@ def place_order():
             return redirect(url_for('order_confirmation'))  # Redirect to order confirmation page
         else:
             return "Invalid order details!"
-    return render_template("place_order.html")
+    return render_template("make_order.html")
 
 
 @app.route("/order_confirmation")
@@ -114,20 +121,21 @@ def update_order():
 if __name__ == "__main__":
     app.run(debug=True)
 
-
-# import time
-#
-# for i in range(1_000_000):
-#     order = {
-#         "id": str(uuid.uuid4()),
-#         "user": f"{i}_user",
-#         "email": f"{i}_email",
-#         "food": f"{i}_food",
-#         "size": f"{i}_size",
-#         "cost": 4,
-#         "time": datetime.datetime.now().isoformat()
-#     }
-#
-#     producer.send(ORDER_KAFKA_TOPIC, json.dumps(order).encode("utf-8"))
-#     print(f"Done Sending..{i}")
-#     time.sleep(0)
+    # import time
+    #
+    # producer = KafkaProducer(bootstrap_servers="localhost:29092")
+    #
+    # for i in range(1_000_000):
+    #     order = {
+    #         "id": str(uuid.uuid4()),
+    #         "user": f"{i}_user",
+    #         "email": f"{i}_email",
+    #         "food": f"{i}_food",
+    #         "size": f"{i}_size",
+    #         "cost": 4,
+    #         "time": datetime.now().isoformat()
+    #     }
+    #
+    #     producer.send(ORDER_CONFIRMED_KAFKA_TOPIC, json.dumps(order).encode("utf-8"))
+    #     print(f"Done Sending..{i}")
+    #     time.sleep(0)
